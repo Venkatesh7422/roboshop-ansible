@@ -57,9 +57,13 @@
       state: present
 
   - name: get the categories count
-    ansible.builtin.command: 
+    ansible.builtin.command: mongo --host mongodb.venky.shop </app/schema/catalogue.js
     register: product_count
 
   - name: print the count
     ansible.builtin.debug:
       msg: "product count: {{product_count}}"
+
+  #- name: load catalogue data
+   # ansible.builtin.command: mongo --host mongodb.venky.shop </app/schema/catalogue.js
+
