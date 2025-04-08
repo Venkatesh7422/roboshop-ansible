@@ -56,3 +56,10 @@
       name: mongodb-org-shell
       state: present
 
+  - name: get the categories count
+    ansible.builtin.command: 
+    register: product_count
+
+  - name: print the count
+    ansible.builtin.debug:
+      msg: "product count: {{product_count}}"
