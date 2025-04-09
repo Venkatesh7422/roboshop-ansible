@@ -66,8 +66,11 @@
     ansible.builtin.debug:
       msg: "schema output: {{schema}}"
 
-  - name: load cities data
-    ansible.builtin.shell: "mysql -h mysql.venky.shop -uroot -p{{mysql_password}}  < /app/schema/shipping.jar"
+  - name: Load shipping schema
+    shell: mysql -h mysql.venky.shop -uroot -pRoboShop@1 < /app/schema/shipping.sql
+
+  #- name: load cities data
+   # ansible.builtin.shell: "mysql -h mysql.venky.shop -uroot -p{{mysql_password}}  < /app/schema/shipping.jar"
     when: schema.stdout != "1"
 
   - name: start and enable shipping
