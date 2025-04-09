@@ -1,0 +1,86 @@
+- name: user 
+  hosts: user
+  become: yes
+  tasks:
+  - name: disbling older version nodejs and installin new
+    ansible.builtin.shell: dnf module disable nodejs -y ; dnf module enable nodejs:18 -y
+
+  - name: installing nodejs
+    ansible.builtin.package:
+      name: nodejs
+      state: present
+
+  - name: creating user
+    ansible.builtin.user:
+      name: roboshop
+
+  - name: Recursively remove app directory
+    ansible.builtin.file:
+      path: /app
+      state: absent    
+    
+  - name: creating directory
+    ansible.builtin.file:
+      path: /app
+      state: directory
+
+  - name: downloading content to created directory
+    ansible.builtin.get_url:
+      url: https://roboshop-builds.s3.amazonaws.com/user.zip
+      dest: /tmp
+
+  - name: unzipping content
+    ansible.builtin.unarchive:
+      src: /tmp/user.zip
+      dest: /app
+      remote_src: yes
+
+  - name: installing dependencies
+    ansible.builtin.command:  npm install
+    args:
+      chdir: /app
+
+
+  - name: configuring user.service
+    ansible.builtin.copy:
+      src: user.service
+      dest: /etc/systemd/system/user.service
+
+  - name: load the service
+    ansible.builtin.systemd_service:
+      daemon_reload: true
+
+  - name: enabling and starting user
+    ansible.builtin.service:
+      state: restarted
+
+  - name: copying mongorepo
+    ansible.builtin.copy: 
+      src: mongodb.repo
+      dest: /etc/yum.repos.d/mongo.repo
+
+  - name: installing mongodb client
+    ansible.builtin.package:
+      name: mongodb-org-shell
+      state: present
+
+  - name: get the users count
+    ansible.builtin.command:  mongo --host mongodb.daws76s.online --quiet --eval 'db = db.getSiblingDB("users"); db.users.count()'
+    register: user_count
+
+  # - name: print the count
+  #   ansible.builtin.debug:
+  #     msg: "product count: {{user_count}}"
+
+  - name: load user data
+    ansible.builtin.command: mongo --host mongodb.daws76s.online < /app/schema/user.js
+    when: user_count.stdout == "0" # keep double quotes
+
+  - name: start and enable user
+    ansible.builtin.service:
+      name: user
+      state: restarted
+      enabled: yes
+
+
+       

@@ -1,0 +1,30 @@
+- nmae: installing redis component
+  hosts: redis
+  tasks:
+  - name: installing remi release
+    ansible.builtin.dnf:
+      name: https://rpms.remirepo.net/enterprise/remi-release-8.rpm
+      state: present
+      disable_gpg_check: true
+
+  - name: enabling redis
+    ansible.builtin.command: dnf module enable redis:remi-6.2 -y
+    
+  - name: installing redis
+    ansible.builtin.dnf:
+      name: redis
+      state: present
+
+  - name: allow remote connections
+    ansible.builtin.replace:
+    replace:
+      path: /etc/redis/redis.conf
+      regexp: '127.0.0.1'
+      replace: '0.0.0.0'
+
+  - name: enabling the service
+    ansible.builtin.debug:
+      name: redis
+      state: restarted
+      enabled: yes
+      
