@@ -5,9 +5,9 @@
 
   - name: Install Remi repo (generic 8.x compatible)
     yum:
-    name: https://rpms.remirepo.net/enterprise/remi-release-8.rpm
-    state: present
-    disable_gpg_check: true
+      name: https://rpms.remirepo.net/enterprise/remi-release-8.rpm
+      state: present
+      disable_gpg_check: true
 
  # - name: install remi release
   #  ansible.builtin.dnf: # check pacakge will work not
