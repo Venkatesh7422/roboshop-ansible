@@ -1,4 +1,4 @@
-- nmae: installing redis component
+- name: installing redis component
   hosts: redis
   tasks:
   - name: installing remi release
