@@ -5,7 +5,7 @@
     ansible.builtin.shell: dnf module disable nodejs -y
 
   - name: congiure mysql repo  file
-    asnible.builtin.copy:
+    ansible.builtin.copy:
       src: mysql.repo
       dest: /etc/yum.repos.d/mysql.repo
  
