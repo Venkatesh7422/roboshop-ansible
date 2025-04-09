@@ -1,71 +1,68 @@
-- name: user 
+- name: user
   hosts: user
   become: yes
   tasks:
-  - name: disbling older version nodejs and installin new
+  - name: disable old nodejs and enable nodejs
     ansible.builtin.shell: dnf module disable nodejs -y ; dnf module enable nodejs:18 -y
 
-  - name: installing nodejs
-    ansible.builtin.package:
-      name: nodejs
+  - name: Install nodejs
+    ansible.builtin.dnf:
+      name: nodejs 
       state: present
 
-  - name: creating user
+  - name: create roboshop user
     ansible.builtin.user:
       name: roboshop
 
   - name: Recursively remove app directory
     ansible.builtin.file:
       path: /app
-      state: absent    
-    
-  - name: creating directory
+      state: absent
+
+  - name: create app directory
     ansible.builtin.file:
       path: /app
       state: directory
 
-  - name: downloading content to created directory
+  - name: download user application
     ansible.builtin.get_url:
       url: https://roboshop-builds.s3.amazonaws.com/user.zip
       dest: /tmp
 
-  - name: unzipping content
+  - name: extract user application
     ansible.builtin.unarchive:
       src: /tmp/user.zip
       dest: /app
       remote_src: yes
 
-  - name: installing dependencies
-    ansible.builtin.command:  npm install
+  - name: Install dependencies
+    ansible.builtin.command: npm install
     args:
       chdir: /app
 
-
-  - name: configuring user.service
+  - name: Copy user service
     ansible.builtin.copy:
       src: user.service
       dest: /etc/systemd/system/user.service
 
-  - name: load the service
+  - name: deamon realod and start
     ansible.builtin.systemd_service:
       daemon_reload: true
 
-  - name: enabling and starting user
-    ansible.builtin.service:
-      state: restarted
+  # let's start after the data is loaded
 
-  - name: copying mongorepo
-    ansible.builtin.copy: 
+  - name: Copy mongodb repo
+    ansible.builtin.copy:
       src: mongodb.repo
-      dest: /etc/yum.repos.d/mongo.repo
+      dest: /etc/yum.repos.d/mongodb.repo
 
-  - name: installing mongodb client
+  - name: Install mongodb client
     ansible.builtin.package:
       name: mongodb-org-shell
       state: present
 
   - name: get the users count
-    ansible.builtin.command:  mongo --host mongodb.daws76s.online --quiet --eval 'db = db.getSiblingDB("users"); db.users.count()'
+    ansible.builtin.command:  mongo --host mongodb.venky.shop --quiet --eval 'db = db.getSiblingDB("users"); db.users.count()'
     register: user_count
 
   # - name: print the count
@@ -73,7 +70,7 @@
   #     msg: "product count: {{user_count}}"
 
   - name: load user data
-    ansible.builtin.command: mongo --host mongodb.daws76s.online < /app/schema/user.js
+    ansible.builtin.command: mongo --host mongodb.venky.shop < /app/schema/user.js
     when: user_count.stdout == "0" # keep double quotes
 
   - name: start and enable user
@@ -81,6 +78,3 @@
       name: user
       state: restarted
       enabled: yes
-
-
-       
